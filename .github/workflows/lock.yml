@@ -6,6 +6,7 @@ on:
 
 jobs:
   lock:
+    if: ${{ github.repository == 'panva/openid-client' }}
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:

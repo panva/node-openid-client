@@ -1,0 +1,47 @@
+{
+  "commit-all": true,
+  "scripts": {
+    "prerelease": "npm run format && npm run docs && git diff --quiet && npm run tap:node && npm run build",
+    "postbump": "node .postbump.cjs",
+    "postchangelog": "sed -i '' -e 's/### \\[/## [/g' CHANGELOG.md"
+  },
+  "types": [
+    {
+      "type": "feat",
+      "section": "Features",
+      "hidden": false
+    },
+    {
+      "type": "fix",
+      "section": "Fixes",
+      "hidden": false
+    },
+    {
+      "type": "chore",
+      "hidden": true
+    },
+    {
+      "type": "docs",
+      "section": "Documentation",
+      "hidden": false
+    },
+    {
+      "type": "style",
+      "hidden": true
+    },
+    {
+      "type": "refactor",
+      "section": "Refactor",
+      "hidden": false
+    },
+    {
+      "type": "perf",
+      "section": "Performance",
+      "hidden": false
+    },
+    {
+      "type": "test",
+      "hidden": true
+    }
+  ]
+}

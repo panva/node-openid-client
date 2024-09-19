@@ -1,0 +1,38 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "disableSources": true,
+  "parametersFormat": "table",
+  "textContentMappings": {
+    "title.memberPage": "{kind}: {name}\n\n[💗 Help the project](https://github.com/sponsors/panva)\n\nSupport from the community to continue maintaining and improving this module is welcome. If you find the module useful, please consider supporting the project by [becoming a sponsor](https://github.com/sponsors/panva).\n\n***\n\n",
+    "title.indexPage": "{projectName} API Reference"
+  },
+  "hideBreadcrumbs": true,
+  "hidePageHeader": true,
+  "entryPoints": ["src/index.ts"],
+  "excludeExternals": false,
+  "excludePrivate": true,
+  "excludeProtected": true,
+  "excludeInternal": true,
+  "gitRevision": "main",
+  "hideGenerator": true,
+  "out": "docs",
+  "plugin": ["typedoc-plugin-markdown", "typedoc-plugin-mdn-links"],
+  "readme": "none",
+  "groupOrder": [
+    "You are probably looking for this",
+    "Configuration",
+    "Grants",
+    "Advanced Configuration",
+    "Client Authentication Methods",
+    "Errors",
+    "*",
+    "Interfaces",
+    "Type Aliases",
+    "Variables"
+  ],
+  "sort": [
+    "static-first",
+    "required-first",
+    "alphabetical"
+  ]
+}

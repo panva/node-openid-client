@@ -1,6 +1,11 @@
 {
   "trailingComma": "all",
   "singleQuote": true,
-  "printWidth": 100,
-  "semi": true
+  "printWidth": 80,
+  "semi": false,
+  "plugins": ["prettier-plugin-jsdoc"],
+  "tsdoc": true,
+  "jsdocSeparateReturnsFromParam": true,
+  "jsdocSeparateTagGroups": true,
+  "jsdocCommentLineStrategy": "multiline"
 }

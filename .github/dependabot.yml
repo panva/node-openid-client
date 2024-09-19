@@ -5,6 +5,13 @@
 
 version: 2
 updates:
+  - package-ecosystem: "npm" # See documentation for possible values
+    directory: "/" # Location of package manifests
+    schedule:
+      interval: "weekly"
+    versioning-strategy: "increase"
+    allow:
+      - dependency-name: "edge-runtime"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

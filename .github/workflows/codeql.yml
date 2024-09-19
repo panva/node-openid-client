@@ -22,6 +22,7 @@ on:
 
 jobs:
   analyze:
+    if: ${{ github.repository == 'panva/openid-client' }}
     name: Analyze
     runs-on: ubuntu-latest
     permissions:

@@ -11,115 +11,68 @@ on:
 
 jobs:
   build:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
     uses: panva/.github/.github/workflows/build-conformance-suite.yml@main
 
   run:
     runs-on: ubuntu-latest
     needs:
       - build
-    env:
-      NODE_TLS_REJECT_UNAUTHORIZED: 0
-      DEBUG: runner,moduleId*
-      SUITE_BASE_URL: https://localhost.emobix.co.uk:8443
-      PLAN_NAME: ${{ matrix.setup.plan }}
-      VARIANT: ${{ toJSON(matrix.setup) }}
     strategy:
       fail-fast: false
       matrix:
         setup:
-          # OIDC BASIC
+          # Core 1.0 response_type=code
           - plan: oidcc-client-basic-certification-test-plan
 
-          # OIDC IMPLICIT
-          - plan: oidcc-client-implicit-certification-test-plan
-
-          # OIDC HYBRID
+          # Core 1.0 response_type=code id_token
           - plan: oidcc-client-hybrid-certification-test-plan
 
-          # OIDC CONFIG
-          - plan: oidcc-client-config-certification-test-plan
+          # Comprehensive Core 1.0 client test
+          - plan: oidcc-client-test-plan
+          - plan: oidcc-client-test-plan
+            variant:
+              response_type: code id_token
 
-          # OIDC DYNAMIC
-          # TODO: work around the request_uri lodging service EOL
-          # - plan: oidcc-client-dynamic-certification-test-plan
-
-          # FAPI 1.0 ID-2
-          # These plans are deprecated and to be removed
-          # - plan: fapi-rw-id2-client-test-plan
-          #   client_auth_type: mtls
-          # - plan: fapi-rw-id2-client-test-plan
-          #   client_auth_type: private_key_jwt
-
-          # FAPI 1.0 Advanced Final
+          # Financial-grade API Security Profile 1.0 - Part 2: Advanced
           - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: private_key_jwt
+            variant:
+              client_auth_type: 'private_key_jwt'
           - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: mtls
+            variant:
+              client_auth_type: 'mtls'
           - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: mtls
-            fapi_auth_request_method: pushed
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: private_key_jwt
-            fapi_auth_request_method: pushed
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: mtls
-            fapi_response_mode: jarm
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: private_key_jwt
-            fapi_response_mode: jarm
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: mtls
-            fapi_auth_request_method: pushed
-            fapi_response_mode: jarm
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: private_key_jwt
-            fapi_auth_request_method: pushed
-            fapi_response_mode: jarm
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: mtls
-            fapi_auth_request_method: pushed
-            fapi_response_mode: jarm
-            fapi_client_type: plain_oauth
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: mtls
-            fapi_response_mode: jarm
-            fapi_client_type: plain_oauth
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: private_key_jwt
-            fapi_auth_request_method: pushed
-            fapi_response_mode: jarm
-            fapi_client_type: plain_oauth
-          - plan: fapi1-advanced-final-client-test-plan
-            client_auth_type: private_key_jwt
-            fapi_response_mode: jarm
-            fapi_client_type: plain_oauth
+            variant:
+              fapi_response_mode: 'plain_response'
+              fapi_auth_request_method: 'by_value'
 
           # FAPI 2.0 Security Profile ID2
           - plan: fapi2-security-profile-id2-client-test-plan
-            client_auth_type: 'private_key_jwt'
-            sender_constrain: 'dpop'
+            variant:
+              client_auth_type: 'private_key_jwt'
+              sender_constrain: 'dpop'
           - plan: fapi2-security-profile-id2-client-test-plan
-            client_auth_type: 'private_key_jwt'
-            sender_constrain: 'mtls'
+            variant:
+              client_auth_type: 'private_key_jwt'
+              sender_constrain: 'mtls'
           - plan: fapi2-security-profile-id2-client-test-plan
-            client_auth_type: 'mtls'
-            sender_constrain: 'dpop'
+            variant:
+              client_auth_type: 'mtls'
+              sender_constrain: 'dpop'
           - plan: fapi2-security-profile-id2-client-test-plan
-            client_auth_type: 'mtls'
-            sender_constrain: 'mtls'
+            variant:
+              client_auth_type: 'mtls'
+              sender_constrain: 'mtls'
 
           # FAPI 2.0 Message Signing ID1
           - plan: fapi2-message-signing-id1-client-test-plan
-            client_auth_type: 'mtls'
-            sender_constrain: 'mtls'
+          - plan: fapi2-message-signing-id1-client-test-plan
+            variant:
+              fapi_client_type: 'plain_oauth'
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Set Conformance Suite Version
-        run: |
-          export VERSION=($(curl --silent "https://gitlab.com/api/v4/projects/4175605/releases" | jq -r '.[0].tag_name'))
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
       - name: Load Cached Conformance Suite Build
         uses: actions/cache@v4
         id: cache
@@ -132,25 +85,35 @@ jobs:
         run: |
           docker compose -f docker-compose-dev.yml up -d
           while ! curl -skfail https://localhost.emobix.co.uk:8443/api/runner/available >/dev/null; do sleep 2; done
-      - run: git clone --depth 1 --single-branch --branch main https://github.com/panva/openid-client-certification-suite.git runner
-      - uses: actions/setup-node@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
         with:
           node-version: lts/iron # 20
           cache: 'npm'
       - run: npm clean-install
-        working-directory: ./runner
-      - run: npm install ${{ github.repository }}#${{ github.sha }}
-        working-directory: ./runner
-      - run: npm run test
-        working-directory: ./runner
+      - name: npm run conformance
+        run: |
+          set -o pipefail
+          npm run conformance | tee capture.txt
         env:
-          NODE_OPTIONS: --tls-cipher-list="ECDHE-RSA-AES128-GCM-SHA256 ECDHE-RSA-AES256-GCM-SHA384 ECDHE-ECDSA-AES128-GCM-SHA256 ECDHE-ECDSA-AES256-GCM-SHA384"
+          NODE_TLS_REJECT_UNAUTHORIZED: 0
+          SUITE_BASE_URL: https://localhost.emobix.co.uk:8443
+          PLAN_NAME: ${{ matrix.setup.plan }}
+          VARIANT: ${{ toJSON(matrix.setup.variant) }}
+      - run: node ./conformance/.parse-logs.mjs capture.txt
       - name: Upload test artifacts
+        id: artifact-upload-step
         uses: actions/upload-artifact@v4
         with:
           path: |
-            runner/export-*.zip
-            runner/logs/*.log
-          name: certification results idx(${{ strategy.job-index }})
-          if-no-files-found: warn
-        if: ${{ failure() }}
+            *.zip
+            *.txt
+          name: conformance results idx(${{ strategy.job-index }})
+          if-no-files-found: error
+        if: ${{ always() }}
+      - if: ${{ success() }}
+        run: |
+          echo "### [:tada:](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload-step.outputs.artifact-id }})" >> $GITHUB_STEP_SUMMARY
+      - if: ${{ failure() }}
+        run: |
+          echo "### [:exclamation:](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.artifact-upload-step.outputs.artifact-id }})" >> $GITHUB_STEP_SUMMARY

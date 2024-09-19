@@ -1,11 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: ❓ Question
-    url: https://github.com/panva/node-openid-client/discussions/new?category=q-a
+    url: https://github.com/panva/openid-client/discussions/new?category=q-a
     about:
       Have a question about using openid-client? Head over to the discussions "Q&A" Category
   - name: 💡 Feature proposal
-    url: https://github.com/panva/node-openid-client/discussions/new?category=ideas
+    url: https://github.com/panva/openid-client/discussions/new?category=ideas
     about:
       Have a proposal for a new feature? Head over to the discussions "Ideas" Category
   - name: Support the project

@@ -10,19 +10,65 @@ on:
   workflow_dispatch:
 
 jobs:
-  audit:
-    uses: panva/.github/.github/workflows/npm-audit.yml@main
-
-  test:
+  build:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
-    continue-on-error: ${{ !startsWith(matrix.node-version, 'lts') }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - run: npm run build
+
+  format:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - run: npm run format-check
+      - run: git diff --quiet
+
+  check-docs:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    runs-on: ubuntu-latest
+    needs:
+      - build
+      - format
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - uses: r-lib/actions/setup-pandoc@v2
+        with:
+          pandoc-version: latest
+      - run: npm run build
+      - run: npm run docs-check
+
+  node:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         node-version:
-          - lts/erbium # 12
-          - lts/fermium # 14
-          - lts/gallium # 16
           - lts/hydrogen # 18
           - lts/iron # 20
           - current
@@ -31,26 +77,191 @@ jobs:
         uses: actions/checkout@v4
       - name: Setup node
         uses: actions/setup-node@v4
-        id: node
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
           check-latest: true
-      - run: npm install --global npm@8
-        if: ${{ startsWith(steps.node.outputs.node-version, 'v12') || startsWith(steps.node.outputs.node-version, 'v14') }}
-      - name: Install dependencies
-        run: npm clean-install
-      - run: npm run test
+      - run: npm clean-install
+      - name: Run Test Suite
+        run: npm run tap:node
+      - name: Upload server logs
+        if: ${{ failure() }}
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: server.log
+          name: node idx(${{ strategy.job-index }}) server log
+          if-no-files-found: warn
 
-  electron:
+  edge-runtime:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        id: node
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
         with:
           node-version: lts/iron # 20
           cache: 'npm'
-      - name: Install dependencies
-        run: npm clean-install
-      - run: npx xvfb-maybe npx electron@latest ./test/electron test/**/*.test.js
+      - run: npm clean-install
+      - name: Run Test Suite
+        run: npm run tap:edge-runtime
+      - name: Upload server logs
+        if: ${{ failure() }}
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: server.log
+          name: edge-runtime server log
+          if-no-files-found: warn
+
+  electron:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - run: npm install --global electron
+      - name: Run Test Suite
+        run: npm run tap:electron
+      - name: Upload server logs
+        if: ${{ failure() }}
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: server.log
+          name: electron server log
+          if-no-files-found: warn
+
+  deno:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v1
+        with:
+          deno-version: latest
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - name: Run Test Suite
+        run: npm run tap:deno
+      - name: Upload server logs
+        if: ${{ failure() }}
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: server.log
+          name: deno server log
+          if-no-files-found: warn
+
+  workerd:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - run: npm install --global workerd
+      - name: Run Test Suite
+        run: npm run tap:workerd
+
+  bun:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - name: Run Test Suite
+        run: npm run tap:bun
+      - name: Upload server logs
+        if: ${{ failure() }}
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: server.log
+          name: bun server log
+          if-no-files-found: warn
+
+  browsers:
+    if: ${{ github.repository == 'panva/openid-client' || github.event_name == 'workflow_dispatch' }}
+    needs:
+      - build
+    runs-on: ${{ matrix.runs-on || 'ubuntu-latest' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        browser:
+          - name: chrome
+            id: chrome:headless
+          - name: firefox
+            id: firefox:headless
+          - name: edge
+            id: edge:headless
+        include:
+          - runs-on: macos-14
+            browser:
+              name: safari
+              id: safari
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup node
+        uses: actions/setup-node@v4
+        with:
+          node-version: lts/iron # 20
+          cache: 'npm'
+      - run: npm clean-install
+      - run: npm install --global testcafe@3
+      - name: Add rows to the TCC.db
+        if: ${{ matrix.runs-on == 'macos-14' }}
+        run: |
+          sudo sqlite3 "$HOME/Library/Application Support/com.apple.TCC/TCC.db" "INSERT OR REPLACE INTO access VALUES('kTCCServiceAppleEvents','com.devexpress.testcafe-browser-tools',0,2,3,1,X'fade0c0000000068000000010000000700000007000000080000001443fa4ca5141baeda21aeca1f50894673b440d4690000000800000014f8afcf6e69791b283e55bd0b03e39e422745770e0000000800000014bf4fc1aed64c871a49fc6bc9dd3878ce5d4d17c6',NULL,0,'com.apple.Safari',X'fade0c000000002c00000001000000060000000200000010636f6d2e6170706c652e53616661726900000003',NULL,1687952810,NULL,NULL,'UNUSED',1687952810);"
+          sudo sqlite3 "/Library/Application Support/com.apple.TCC/TCC.db" "INSERT OR REPLACE INTO access VALUES('kTCCServiceScreenCapture','com.devexpress.testcafe-browser-tools',0,2,3,1,X'fade0c0000000068000000010000000700000007000000080000001443fa4ca5141baeda21aeca1f50894673b440d4690000000800000014f8afcf6e69791b283e55bd0b03e39e422745770e0000000800000014bf4fc1aed64c871a49fc6bc9dd3878ce5d4d17c6',NULL,0,'UNUSED',NULL,0,1687952810,NULL,NULL,'UNUSED',1687952810);"
+      - name: Run Test Suite
+        run: npm run tap:browsers
+        env:
+          BROWSER: ${{ matrix.browser.id }}
+      - name: Upload server logs
+        if: ${{ failure() }}
+        id: artifact-upload-step
+        uses: actions/upload-artifact@v4
+        with:
+          path: server.log
+          name: ${{ matrix.browser.name }} server log
+          if-no-files-found: warn

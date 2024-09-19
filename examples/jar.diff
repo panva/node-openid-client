@@ -1,0 +1,25 @@
+diff --git a/examples/oauth.ts b/examples/jar.ts
+index 97579a5..5bc94a9 100644
+--- a/examples/oauth.ts
++++ b/examples/jar.ts
+@@ -6,6 +6,7 @@ let getCurrentUrl!: (...args: any) => URL
+ let server!: URL // Authorization server's Issuer Identifier URL
+ let clientId!: string
+ let clientSecret!: string
++let clientPrivateKey!: client.CryptoKey | client.PrivateKey
+ /**
+  * Value used in the authorization request as redirect_uri pre-registered at the
+  * Authorization Server.
+@@ -50,7 +51,11 @@ let state!: string
+     parameters.state = state
+   }
+ 
+-  const redirectTo = client.buildAuthorizationUrl(config, parameters)
++  const redirectTo = await client.buildAuthorizationUrlWithJAR(
++    config,
++    parameters,
++    clientPrivateKey,
++  )
+ 
+   console.log('redirecting to', redirectTo.href)
+   // now redirect the user to redirectTo.href

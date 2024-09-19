@@ -1,42 +1,56 @@
----
 name: 🐞Bug report
-about: Something is not working as I think it should be
-labels: triage
-
----
-
-**Describe the bug**
-<!-- A clear and concise description of what the bug is. -->
-
-
-**To Reproduce**
-Issuer and Client configuration: (inline or gist) - Don't forget to redact your secrets.
-```js
-// Issuer configuration (issuer.metadata) and how it is constructed (discovery or manual?)
-{
-  // ...
-}
-// Client configuration (client.metadata) and how it is constructed (fromUri or manual?)
-{
-  // ...
-}
-```
-
-Steps to reproduce the behaviour:
-
-1.  
-2.  
-3.  
-
-**Expected behaviour**
-A clear and concise description of what you expected to happen.
-
-**Environment:**
- - openid-client version: [e.g. v3.14.0]
- - node version: [e.g. v8.9.0]
-
-**Additional context**
-Add any other context about the problem here.
-
- - [ ] the bug is happening on latest openid-client too.
- - [ ] i have searched the issues tracker on github for similar issues and couldn't find anything related.
+description: There's a bug I want to report
+labels:
+  - triage
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report. Do not use this form to ask questions or make suggestions, use the [appropriate](https://github.com/panva/openid-client/issues/new/choose) Discussions Topic for those.
+  - type: textarea
+    attributes:
+      label: What happened?
+      description: A clear and concise description of what the bug is and what you expected to happen instead.
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Version
+      description: What exact version of the library do you use?
+      placeholder: e.g. v1.0.0
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: Runtime
+      description: What JavaScript runtime are you seeing the problem on?
+      options:
+        - Browser
+        - Cloudflare Workers
+        - Deno
+        - Electron
+        - Node.js
+        - Other (I will specify below)
+    validations:
+      required: true
+  - type: input
+    attributes:
+      label: Runtime Details
+      description: More information about the runtime (e.g. node version, browser vendor and version, electron version, operating system)
+    validations:
+      required: true
+  - type: textarea
+    attributes:
+      label: Code to reproduce
+      description: Please copy and paste code to reproduce the issue. This will be automatically formatted into JavaScript code, so no need for backticks.
+      render: js
+    validations:
+      required: true
+  - type: checkboxes
+    attributes:
+      label: Required
+      options:
+        - label: I have searched the issues tracker and discussions for similar topics and couldn't find anything related.
+          required: true
+        - label: I agree to follow this project's [Code of Conduct](https://github.com/panva/openid-client/blob/main/CODE_OF_CONDUCT.md)
+          required: true

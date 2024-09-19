@@ -21,8 +21,7 @@ coverage
 # node-waf configuration
 .lock-wscript
 
-# Compiled binary addons (http://nodejs.org/api/addons.html)
-build/Release
+build
 
 # Dependency directory
 node_modules
@@ -37,3 +36,9 @@ npm-shrinkwrap.json
 
 # TS test
 types/*.js
+
+tap/.workerd.capnp
+tap/.workers.capnp
+tap/*.js
+tap/run-*.cjs
+*.zip

@@ -4,13 +4,14 @@ on:
   workflow_run:
     workflows:
       - Conformance Checks
+      - Test
     types:
       - completed
 
 jobs:
   retry:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt == 1 }}
+    if: ${{ github.repository == 'panva/openid-client' && github.event.workflow_run.conclusion == 'failure' && github.event.workflow_run.run_attempt == 1 }}
     steps:
       - run: gh api -XPOST ${{ github.event.workflow_run.rerun_url }}-failed-jobs
         env:

@@ -1,0 +1,29 @@
+{
+  "files": ["./src/index.ts"],
+  "compilerOptions": {
+    "moduleResolution": "NodeNext",
+    "target": "ES2022",
+    "module": "NodeNext",
+    "strict": true,
+    "removeComments": true,
+    "outDir": "build",
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitAny": true,
+    "allowUnreachableCode": false,
+    "allowUnusedLabels": false,
+    "verbatimModuleSyntax": true,
+    "noFallthroughCasesInSwitch": true,
+    "noImplicitOverride": true,
+    "noImplicitReturns": true,
+    "sourceMap": true,
+    "skipLibCheck": true,
+    "stripInternal": true,
+    // NODE
+    // "lib": ["ES2022.Error"],
+    // "types": ["node"]
+    // Web API
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": []
+  }
+}
