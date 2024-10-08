@@ -1,6 +1,12 @@
 # High-Level OAuth 2 / OpenID Connect Client API for JavaScript Runtimes
 
-TODO
+> [!IMPORTANT]
+>
+> [v6.0.0 beta.0 is out on npm](https://www.npmjs.com/package/openid-client/v/6.0.0-beta.0)
+>
+> ```sh
+> npm install openid-client@beta
+> ```
 
 ## Features
 
